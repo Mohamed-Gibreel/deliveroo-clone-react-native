@@ -1,4 +1,4 @@
-import React, { useLayoutEffect } from "react";
+import React, { useLayoutEffect, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -18,14 +18,37 @@ import {
 } from "react-native-heroicons/outline";
 import CategorySection from "../components/CategoriesSection";
 import FeaturedSection from "../components/FeaturedSection";
+import client from "../sanity.js";
 
 export default function HomeScreen() {
   const navigation = useNavigation();
+
+  const [featuredCategories, setFeaturedCategories] = useState([]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerShown: false,
     });
+  }, []);
+
+  useEffect(() => {
+    client
+      .fetch(
+        `
+          *[_type == "featured"]{
+            ...,
+            resturants[]->{
+              ...,
+              dishes[]->{
+                ...,
+              }
+            }
+          }
+        `
+      )
+      .then((data) => {
+        setFeaturedCategories(data);
+      });
   }, []);
 
   return (
@@ -36,7 +59,7 @@ export default function HomeScreen() {
       }}
     >
       {/* Header Component */}
-      <View className="m-4">
+      <View className="p-4">
         {/* Navbar */}
         <View className="flex-row pb-3 items-center space-x-2">
           <Image
@@ -71,26 +94,15 @@ export default function HomeScreen() {
         {/* Categories */}
         <CategorySection />
         {/* Featured Items */}
-        <FeaturedSection
-          id="1"
-          title="Featured"
-          description="Paid placements from our partners"
-          featuredCategory="featured"
-        />
-        {/* Tasty Discounts */}
-        <FeaturedSection
-          id="2"
-          title="Featured"
-          description="Paid placements from our partners"
-          featuredCategory="featured"
-        />
-        {/* Offers near you   */}
-        <FeaturedSection
-          id="3"
-          title="Featured"
-          description="Paid placements from our partners"
-          featuredCategory="featured"
-        />
+        {featuredCategories?.map((category) => (
+          <FeaturedSection
+            key={category._id}
+            id={category._id}
+            title={category.name}
+            description={category.short_description}
+            featuredCategory="featured"
+          />
+        ))}
       </ScrollView>
       {/* Body */}
     </SafeAreaView>
