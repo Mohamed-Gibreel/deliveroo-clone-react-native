@@ -1,7 +1,8 @@
 import { View, Text, ScrollView } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ArrowRightIcon } from "react-native-heroicons/outline";
 import ResturantCard from "./ResturantCard";
+import sanityClient from "../sanity";
 
 export default function FeaturedSection({
   id,
@@ -9,6 +10,38 @@ export default function FeaturedSection({
   description,
   featuredCategory,
 }) {
+  const [resturants, setResturants] = useState([]);
+
+  useEffect(() => {
+    sanityClient
+      .fetch(
+        `
+      *[_type == "featured" && _id == $id]{
+        ...,
+        resturants[]->{
+          ...,
+          dishes[]->{
+            ...,
+          },
+          type->{
+            name,
+          }
+        }
+      }[0]
+      `,
+        { id: id }
+      )
+      .then((data) => {
+        setResturants(data?.resturants);
+      })
+      .catch((e) => {
+        console.log("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+        console.log("Error");
+        console.log(e);
+        console.log("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+      });
+  }, [id]);
+
   return (
     <View className="mt-4">
       <View className="flex-row items-center justify-between mx-4">
@@ -27,42 +60,20 @@ export default function FeaturedSection({
         className="pt-4"
       >
         {/* Resturant Cards */}
-        <ResturantCard
-          id="1"
-          imageUrl="https://links.papareact.com/gn7"
-          title="Biryani"
-          rating="5.5"
-          genre="Indian"
-          address="Khalidiya, Abu Dhabi"
-          short_description="Best rice dish on earth"
-          dishes={[]}
-          long={14.1235}
-          lat={23.125213}
-        />
-        <ResturantCard
-          id="1"
-          imageUrl="https://links.papareact.com/gn7"
-          title="Biryani"
-          rating="5.5"
-          genre="Indian"
-          address="Khalidiya, Abu Dhabi"
-          short_description="Best rice dish on earth"
-          dishes={[]}
-          long={14.1235}
-          lat={23.125213}
-        />
-        <ResturantCard
-          id="1"
-          imageUrl="https://links.papareact.com/gn7"
-          title="Biryani"
-          rating="5.5"
-          genre="Indian"
-          address="Khalidiya, Abu Dhabi"
-          short_description="Best rice dish on earth"
-          dishes={[]}
-          long={14.1235}
-          lat={23.125213}
-        />
+        {resturants?.map((resturant) => (
+          <ResturantCard
+            key={resturant._id}
+            title={resturant.name}
+            rating={resturant.rating}
+            genre={resturant.type?.name}
+            imageUrl={resturant.image}
+            address={resturant.address}
+            short_description={resturant.short_description}
+            dishes={resturant.dishes}
+            long={resturant.long}
+            lat={resturant.lat}
+          />
+        ))}
       </ScrollView>
     </View>
   );

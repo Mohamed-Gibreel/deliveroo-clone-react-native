@@ -41,6 +41,9 @@ export default function HomeScreen() {
               ...,
               dishes[]->{
                 ...,
+              },
+              type->{
+                ...,
               }
             }
           }
