@@ -3,23 +3,30 @@ import React, { useState } from "react";
 import { urlFor } from "../sanity";
 import Currency from "react-currency-formatter";
 import { MinusCircleIcon, PlusCircleIcon } from "react-native-heroicons/solid";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addToBasket,
+  removeFromBasket,
+  selectBasketItems,
+  selectBasketItemsWithId,
+} from "../features/basket/basketSlice";
 
 export default function DishCard({ id, name, description, price, image }) {
   const [isPressed, setIsPressed] = useState(false);
-  const [count, setCount] = useState(0);
+  const items = useSelector((state) => selectBasketItemsWithId(state, id));
+  const dispatch = useDispatch();
 
   const togglePressed = () => {
     setIsPressed(!isPressed);
   };
 
-  const incrementCount = () => {
-    setCount(count + 1);
+  const addItemToBasket = () => {
+    dispatch(addToBasket({ id, name, description, price, image }));
   };
 
-  const decrementCount = () => {
-    if (count != 0) {
-      setCount(count - 1);
-    }
+  const removeItemFromBasket = () => {
+    if (items.length == 0) return;
+    dispatch(removeFromBasket({ id }));
   };
 
   return (
@@ -49,7 +56,7 @@ export default function DishCard({ id, name, description, price, image }) {
           />
         </View>
         <View>
-          <Text className="text-gray-400">
+          <Text className="text-gray-400 text-left">
             <Currency quantity={price} currency="AED" />
           </Text>
         </View>
@@ -57,19 +64,19 @@ export default function DishCard({ id, name, description, price, image }) {
       {isPressed && (
         <View className="flex-row items-center space-x-2 pl-3 py-2 bg-white">
           <View>
-            <TouchableOpacity onPress={decrementCount}>
+            <TouchableOpacity onPress={removeItemFromBasket}>
               <MinusCircleIcon
                 size={40}
                 // color="#00CCBB"
-                color={count > 0 ? "#00CCBB" : "gray"}
+                color={items.length > 0 ? "#00CCBB" : "gray"}
               />
             </TouchableOpacity>
           </View>
           <View>
-            <Text>{count}</Text>
+            <Text>{items.length}</Text>
           </View>
           <View>
-            <TouchableOpacity onPress={incrementCount}>
+            <TouchableOpacity onPress={addItemToBasket}>
               <PlusCircleIcon size={40} color="#00CCBB" />
             </TouchableOpacity>
           </View>
