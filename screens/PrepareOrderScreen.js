@@ -2,9 +2,19 @@ import { View, Text, SafeAreaView, Platform, StatusBar } from "react-native";
 import React from "react";
 import * as Animatable from "react-native-animatable";
 import * as Progress from "react-native-progress";
+import { useEffect } from "react";
+import { useNavigation } from "@react-navigation/native";
 const PrepareOrderGif = require("../assets/prepare-order.gif");
 
 export default function PrepareOrderScreen() {
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    setTimeout(() => {
+      navigation.navigate("DeliveryScreen");
+    }, 3000);
+  }, []);
+
   return (
     <SafeAreaView
       style={{
